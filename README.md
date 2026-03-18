@@ -61,5 +61,28 @@ Access the dashboard at **[http://localhost:5000](http://localhost:5000)**.
 ## 🛡️ Troubleshooting
 - **Logo/Icons Not Loading**: Ensure you have an active internet connection for Feather Icons CDN.
 - **PDF Analysis Hangs**: Large documents (100+ pages) may take 30-60 seconds for initial vector indexing.
-- **API Errors**: Verify your `ENDEE_API_KEY` format matches the `project:secret:region` pattern.
+---
+
+## 📂 Project Structure
+```text
+├── app.py                # Main Flask entry point (UI & Routing)
+├── rag_engine.py         # Core RAG logic (Gemini & Endee integration)
+├── index.py              # Script for indexing and vector storage
+├── retrieval.py          # Script for testing semantic search & retrieval
+├── csv_engine.py         # Specialized analysis for CSV/Structured data
+├── roadmap.md            # Vision for future feature set
+├── requirement.txt       # Project dependencies
+└── static/               # Premium Neural UI CSS & JS assets
+```
+
+## 🗺️ Roadmap
+Check out [roadmap.md](roadmap.md) for details on:
+- 🌐 Website Content Scraper
+- 📺 YouTube Video Summarizer
+- 📊 Advanced CSV Interrogator
+
+---
+
+## ⚖️ License
+Distributed under the MIT License. See `LICENSE` for more information.
 
