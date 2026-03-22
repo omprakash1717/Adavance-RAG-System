@@ -25,7 +25,7 @@ NeuralDoc is a premium, next-generation Retrieval-Augmented Generation (RAG) pla
 
 ### 1. Install Dependencies
 ```bash
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment (`.env`)
@@ -71,7 +71,7 @@ Access the dashboard at **[http://localhost:5000](http://localhost:5000)**.
 ├── retrieval.py          # Script for testing semantic search & retrieval
 ├── csv_engine.py         # Specialized analysis for CSV/Structured data
 ├── roadmap.md            # Vision for future feature set
-├── requirement.txt       # Project dependencies
+├── requirements.txt      # Project dependencies
 └── static/               # Premium Neural UI CSS & JS assets
 ```
 
