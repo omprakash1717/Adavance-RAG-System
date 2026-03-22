@@ -54,14 +54,25 @@ def process_pdf(pdf_path: str):
     chunks = splitter.split_documents(docs)
     print(f"Created {len(chunks)} chunks")
 
-    # Ensure index exists
+    # Ensure index exists with correct parameters
     from endee.exceptions import ConflictException
     try:
+        # DIMENSION=384 is specific to sentence-transformers/all-MiniLM-L6-v2
         client.create_index(name=COLLECTION, dimension=384, space_type="cosine", precision=Precision.INT8)
+        print(f"Index '{COLLECTION}' created successfully.")
     except ConflictException:
-        pass # Already exists
+        print(f"Index '{COLLECTION}' already exists.")
+    except Exception as e:
+        if "Missing or incompatible index metadata" in str(e):
+             raise Exception(f"Index '{COLLECTION}' has incompatible metadata on the server. Please delete it via the Endee portal or a script and try again. Error: {e}")
+        raise e
 
-    index = client.get_index(name=COLLECTION)
+    try:
+        index = client.get_index(name=COLLECTION)
+    except Exception as e:
+        if "Resource Not Found" in str(e) or "Missing or incompatible index metadata" in str(e):
+             raise Exception(f"Failed to access index '{COLLECTION}'. This often means the metadata is corrupted or incompatible. Try deleting the index and re-uploading. Error: {e}")
+        raise e
 
     embeddings_model = get_embeddings_model()
     vectors = []

@@ -39,16 +39,23 @@ client = Endee(ENDEE_TOKEN)
 client.set_base_url(ENDEE_BASE_URL)   # points to your dapp.endee.io project
 
 # Create index (384 = all-MiniLM-L6-v2 output dimension)
-client.create_index(
-    name=COLLECTION,
-    dimension=384,
-    space_type="cosine",
-    precision=Precision.INT8
-)
-print(f" Index '{COLLECTION}' created in Endee Cloud.")
+try:
+    client.create_index(
+        name=COLLECTION,
+        dimension=384,
+        space_type="cosine",
+        precision=Precision.INT8
+    )
+    print(f" Index '{COLLECTION}' created in Endee Cloud.")
+except Exception as e:
+    print(f" Note: {e}")
 
 # Get index reference
-index = client.get_index(name=COLLECTION)
+try:
+    index = client.get_index(name=COLLECTION)
+except Exception as e:
+    print(f" Error: Failed to retrieve index metadata. The index might be incompatible. {e}")
+    exit(1)
 
 # ── 5. Embed + upsert all chunks ─────────────────────────────────────────────
 vectors = []

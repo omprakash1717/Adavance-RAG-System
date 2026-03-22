@@ -26,7 +26,11 @@ embeddings_model = HuggingFaceInferenceAPIEmbeddings(
 # ── 3. Connect to Endee Cloud ────────────────────────────────────────────────
 client = Endee(ENDEE_TOKEN)
 client.set_base_url(ENDEE_BASE_URL)
-index = client.get_index(name=COLLECTION)
+try:
+    index = client.get_index(name=COLLECTION)
+except Exception as e:
+    print(f" Error: Failed to retrieve index metadata. The index might be incompatible. {e}")
+    exit(1)
 
 # ── 4. Get user question ─────────────────────────────────────────────────────
 user_query = input("Ask me anything related to NODE.JS: ")
