@@ -44,6 +44,64 @@ def get_chat_model():
         )
     return _chat_model
 
+def _ensure_index(dimension=384):
+    """Delete any stale index and (re)create one with the right dimension."""
+    from endee.exceptions import ConflictException
+
+    # Try to create the index; if it already exists, verify it is usable
+    try:
+        client.create_index(
+            name=COLLECTION,
+            dimension=dimension,
+            space_type="cosine",
+            precision=Precision.INT8,
+        )
+        print(f"Index '{COLLECTION}' created (dim={dimension}).")
+        return client.get_index(name=COLLECTION)
+    except ConflictException:
+        # Index already exists — try to get it
+        pass
+    except Exception as e:
+        err = str(e)
+        if "Missing or incompatible" in err or "metadata" in err.lower():
+            print(f"Incompatible index detected, deleting '{COLLECTION}'...")
+            try:
+                client.delete_index(name=COLLECTION)
+            except Exception:
+                pass
+            client.create_index(
+                name=COLLECTION,
+                dimension=dimension,
+                space_type="cosine",
+                precision=Precision.INT8,
+            )
+            print(f"Index '{COLLECTION}' re-created (dim={dimension}).")
+            return client.get_index(name=COLLECTION)
+        raise
+
+    # Index already existed — try to open it
+    try:
+        index = client.get_index(name=COLLECTION)
+        return index
+    except Exception as e:
+        err = str(e)
+        if "Missing or incompatible" in err or "metadata" in err.lower():
+            print(f"Stale index detected, deleting '{COLLECTION}'...")
+            try:
+                client.delete_index(name=COLLECTION)
+            except Exception:
+                pass
+            client.create_index(
+                name=COLLECTION,
+                dimension=dimension,
+                space_type="cosine",
+                precision=Precision.INT8,
+            )
+            print(f"Index '{COLLECTION}' re-created (dim={dimension}).")
+            return client.get_index(name=COLLECTION)
+        raise
+
+
 def process_pdf(pdf_path: str):
     """Loads a PDF, splits into chunks, and upserts dense vectors to Endee."""
     print(f"Loading '{pdf_path}'...")
@@ -54,27 +112,9 @@ def process_pdf(pdf_path: str):
     chunks = splitter.split_documents(docs)
     print(f"Created {len(chunks)} chunks")
 
-    # Ensure index exists with correct parameters
-    from endee.exceptions import ConflictException
-    try:
-        # DIMENSION=384 is specific to sentence-transformers/all-MiniLM-L6-v2
-        client.create_index(name=COLLECTION, dimension=384, space_type="cosine", precision=Precision.INT8)
-        print(f"Index '{COLLECTION}' created successfully.")
-    except ConflictException:
-        print(f"Index '{COLLECTION}' already exists.")
-    except Exception as e:
-        if "Missing or incompatible index metadata" in str(e):
-             raise Exception(f"Index '{COLLECTION}' has incompatible metadata on the server. Please delete it via the Endee portal or a script and try again. Error: {e}")
-        raise e
-
-    try:
-        index = client.get_index(name=COLLECTION)
-    except Exception as e:
-        if "Resource Not Found" in str(e) or "Missing or incompatible index metadata" in str(e):
-             raise Exception(f"Failed to access index '{COLLECTION}'. This often means the metadata is corrupted or incompatible. Try deleting the index and re-uploading. Error: {e}")
-        raise e
-
     embeddings_model = get_embeddings_model()
+
+    # Build vectors first so we can detect dimension
     vectors = []
     for i, chunk in enumerate(chunks):
         embedding = embeddings_model.embed_query(chunk.page_content)
@@ -87,14 +127,50 @@ def process_pdf(pdf_path: str):
             }
         })
 
-    index.upsert(vectors)
+    dim = len(vectors[0]["vector"])  # should be 384
+    print(f"Embedding dimension: {dim}")
+
+    # Get (or recreate) the index with the correct dimension
+    index = _ensure_index(dimension=dim)
+
+    # Upsert — if it still fails due to dimension mismatch, delete & retry once
+    try:
+        index.upsert(vectors)
+    except BaseException as e:
+        err_msg = str(e)
+        print(f"[DEBUG] Upsert error type={type(e).__name__}, msg={err_msg}")
+        if "Expected shape" in err_msg or "shape" in err_msg or "dimension" in err_msg.lower() or "3072" in err_msg:
+            print(f"Dimension mismatch on upsert, recreating index...")
+            try:
+                client.delete_index(name=COLLECTION)
+                print(f"Old index '{COLLECTION}' deleted.")
+            except Exception as del_e:
+                print(f"[DEBUG] Delete failed: {del_e}")
+            client.create_index(
+                name=COLLECTION,
+                dimension=dim,
+                space_type="cosine",
+                precision=Precision.INT8,
+            )
+            print(f"New index '{COLLECTION}' created with dim={dim}.")
+            index = client.get_index(name=COLLECTION)
+            index.upsert(vectors)
+        else:
+            raise
+
     print(f"{len(chunks)} chunks stored in Endee Cloud!")
     return len(chunks)
 
+
 def query_pdf(user_query: str):
     """Queries the Endee DB and passes context to Gemini for an answer."""
-    index = client.get_index(name=COLLECTION)
-    
+    try:
+        index = client.get_index(name=COLLECTION)
+    except Exception as e:
+        raise Exception(
+            "No PDF has been indexed yet. Please upload a PDF first."
+        )
+
     embeddings_model = get_embeddings_model()
     query_vector = embeddings_model.embed_query(user_query)
     results = index.query(vector=query_vector, top_k=3)
