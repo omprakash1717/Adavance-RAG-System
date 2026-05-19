@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpointEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from endee import Endee, Precision
 
@@ -29,14 +28,16 @@ client.set_base_url(ENDEE_BASE_URL)
 def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
-        if HF_TOKEN:
-            print("Loading HuggingFace Endpoint Embeddings (API-based)...")
-            _embeddings_model = HuggingFaceEndpointEmbeddings(
-                model="sentence-transformers/all-MiniLM-L6-v2",
-                huggingfacehub_api_token=HF_TOKEN
+        if GEMINI_API_KEY:
+            print("Loading Google Generative AI Embeddings (API-based)...")
+            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            _embeddings_model = GoogleGenerativeAIEmbeddings(
+                model="models/embedding-001",
+                google_api_key=GEMINI_API_KEY
             )
         else:
             print("Loading HuggingFace Embeddings (Local)...")
+            from langchain_huggingface import HuggingFaceEmbeddings
             _embeddings_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     return _embeddings_model
 
