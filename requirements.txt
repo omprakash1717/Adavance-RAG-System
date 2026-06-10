@@ -13,4 +13,5 @@ endee==0.1.19
 pypdf
 pymupdf
 openai
+pysqlite3-binary
 gunicorn

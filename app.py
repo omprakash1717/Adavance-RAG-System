@@ -1,3 +1,10 @@
+import sys
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
 import os
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
