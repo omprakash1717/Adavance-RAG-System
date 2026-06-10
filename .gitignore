@@ -23,3 +23,6 @@ Thumbs.db
 
 # Uploads
 uploads/
+
+# Databases
+chroma_db/

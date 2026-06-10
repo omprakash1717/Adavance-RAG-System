@@ -77,7 +77,7 @@ def index_pdf():
 def chat():
     index = client.get_index(name=COLLECTION)
     model = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-flash-latest",
         google_api_key=GEMINI_API_KEY,
         temperature=0.3
     )
