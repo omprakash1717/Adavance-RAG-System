@@ -1,15 +1,24 @@
 import sys
+print(">>> [1/5] APP STARTING...", flush=True)
+
 try:
     __import__('pysqlite3')
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+    print(">>> [2/5] SQLITE PATCH APPLIED SUCCESSFULLY", flush=True)
 except ImportError:
+    print(">>> [2/5] SQLITE PATCH SKIPPED", flush=True)
     pass
 
 import os
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
+print(">>> [3/5] FLASK IMPORTED", flush=True)
+
 import rag_engine
+print(">>> [4/5] RAG ENGINE IMPORTED", flush=True)
+
 import csv_engine
+print(">>> [5/5] CSV ENGINE IMPORTED", flush=True)
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -107,4 +116,5 @@ def chat_csv():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
+    print(f">>> [SUCCESS] BINDING TO PORT {port} NOW!", flush=True)
     app.run(host='0.0.0.0', port=port, debug=False)
