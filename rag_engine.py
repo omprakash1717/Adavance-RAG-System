@@ -18,24 +18,15 @@ _vectorstore = None
 def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
-        if HF_TOKEN:
-            print("Loading HuggingFace Embeddings (Inference API)...")
-            from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
-            _embeddings_model = HuggingFaceInferenceAPIEmbeddings(
-                api_key=HF_TOKEN, 
-                model_name="sentence-transformers/all-MiniLM-L6-v2"
-            )
-        elif GEMINI_API_KEY:
+        if GEMINI_API_KEY:
             print("Loading Google Generative AI Embeddings (API-based)...")
             from langchain_google_genai import GoogleGenerativeAIEmbeddings
             _embeddings_model = GoogleGenerativeAIEmbeddings(
-                model="models/text-embedding-004",
+                model="models/embedding-001",
                 google_api_key=GEMINI_API_KEY
             )
         else:
-            print("Loading HuggingFace Embeddings (Local)...")
-            from langchain_huggingface import HuggingFaceEmbeddings
-            _embeddings_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            raise Exception("GEMINI_API_KEY is missing! Please set it in your Render Environment Variables.")
     return _embeddings_model
 
 
