@@ -12,12 +12,12 @@ def _call_llm(prompt: str) -> str:
     """Call LLM with automatic fallback: DeepSeek -> Gemini OpenAI-compat."""
     providers = []
 
-    if DEEPSEEK_API_KEY:
-        providers.append(("DeepSeek", DEEPSEEK_API_KEY, "https://api.deepseek.com", "deepseek-chat"))
     if GEMINI_API_KEY:
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.0-flash-lite"))
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.0-flash"))
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.5-flash"))
+    if DEEPSEEK_API_KEY:
+        providers.append(("DeepSeek", DEEPSEEK_API_KEY, "https://api.deepseek.com", "deepseek-chat"))
 
     last_error = None
     for name, key, base_url, model in providers:

@@ -18,10 +18,16 @@ _vectorstore = None
 def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
-        if GEMINI_API_KEY:
+        if HF_TOKEN:
+            print("Loading HuggingFace Embeddings (Inference API)...")
+            from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+            _embeddings_model = HuggingFaceInferenceAPIEmbeddings(
+                api_key=HF_TOKEN, 
+                model_name="sentence-transformers/all-MiniLM-L6-v2"
+            )
+        elif GEMINI_API_KEY:
             print("Loading Google Generative AI Embeddings (API-based)...")
             from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
             _embeddings_model = GoogleGenerativeAIEmbeddings(
                 model="models/text-embedding-004",
                 google_api_key=GEMINI_API_KEY
@@ -51,12 +57,12 @@ def _call_llm(prompt: str) -> str:
     """Call LLM with automatic fallback: DeepSeek -> Gemini OpenAI-compat."""
     providers = []
 
-    if DEEPSEEK_API_KEY:
-        providers.append(("DeepSeek", DEEPSEEK_API_KEY, "https://api.deepseek.com", "deepseek-chat"))
     if GEMINI_API_KEY:
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.0-flash-lite"))
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.0-flash"))
         providers.append(("Gemini", GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.5-flash"))
+    if DEEPSEEK_API_KEY:
+        providers.append(("DeepSeek", DEEPSEEK_API_KEY, "https://api.deepseek.com", "deepseek-chat"))
 
     last_error = None
     for name, key, base_url, model in providers:
@@ -91,7 +97,7 @@ def process_pdf(pdf_path: str):
     loader = PyMuPDFLoader(pdf_path)
     docs = loader.load()
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=300)
     chunks = splitter.split_documents(docs)
     print(f"Created {len(chunks)} chunks")
 
