@@ -19,11 +19,13 @@ def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
         if GEMINI_API_KEY:
-            print("Loading Google Generative AI Embeddings (API-based)...")
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
-            _embeddings_model = GoogleGenerativeAIEmbeddings(
-                model="models/embedding-001",
-                google_api_key=GEMINI_API_KEY
+            print("Loading Google Generative AI Embeddings (via OpenAI Compat)...")
+            from langchain_openai import OpenAIEmbeddings
+            _embeddings_model = OpenAIEmbeddings(
+                api_key=GEMINI_API_KEY,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                model="text-embedding-004",
+                check_embedding_ctx_length=False
             )
         else:
             raise Exception("GEMINI_API_KEY is missing! Please set it in your Render Environment Variables.")
