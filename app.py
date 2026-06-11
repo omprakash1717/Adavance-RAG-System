@@ -10,6 +10,7 @@ except ImportError:
     pass
 
 import os
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 print(">>> [3/5] FLASK IMPORTED", flush=True)

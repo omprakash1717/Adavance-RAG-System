@@ -1,4 +1,5 @@
 import os
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -7,7 +8,7 @@ load_dotenv()
 HF_TOKEN       = os.getenv("HUGGINGFACE_API_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-COLLECTION     = "RAG_system_v2"
+COLLECTION     = "RAG_system_v3"
 CHROMA_PERSIST_DIR = "./chroma_db"
 
 # Global cache
@@ -18,9 +19,17 @@ _vectorstore = None
 def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
-        print("Loading HuggingFace Embeddings (Local)...")
-        from langchain_huggingface import HuggingFaceEmbeddings
-        _embeddings_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        if GEMINI_API_KEY:
+            print("Loading Google Generative AI Embeddings (OpenAI Compat)...")
+            from langchain_openai import OpenAIEmbeddings
+            _embeddings_model = OpenAIEmbeddings(
+                api_key=GEMINI_API_KEY,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                model="gemini-embedding-2",
+                check_embedding_ctx_length=False
+            )
+        else:
+            raise Exception("GEMINI_API_KEY is missing! Please set it in your Render Environment Variables.")
     return _embeddings_model
 
 
