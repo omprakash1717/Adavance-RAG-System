@@ -26,6 +26,18 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50MB max upload
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return jsonify({"error": "File too large. Maximum size is 50MB."}), 413
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({"error": "Internal server error occurred."}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return jsonify({"error": str(e)}), 500
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -42,9 +54,8 @@ def upload_file():
     if file and file.filename.endswith('.pdf'):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
         try:
+            file.save(filepath)
             chunks = rag_engine.process_pdf(filepath)
             return jsonify({
                 "message": "File uploaded and indexed successfully", 
@@ -81,9 +92,8 @@ def upload_csv():
     if file and (file.filename.endswith('.csv') or file.filename.endswith('.xlsx')):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
         try:
+            file.save(filepath)
             stats = csv_engine.process_csv(filepath)
             return jsonify({
                 "message": "CSV uploaded and analyzed successfully", 
