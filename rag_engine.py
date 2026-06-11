@@ -1,8 +1,5 @@
 import os
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
 from openai import OpenAI
 
 load_dotenv()
@@ -43,6 +40,7 @@ def get_embeddings_model():
 def get_vectorstore():
     global _vectorstore
     if _vectorstore is None:
+        from langchain_chroma import Chroma
         if not os.path.exists(CHROMA_PERSIST_DIR):
             raise Exception("No PDF has been indexed yet. Please upload a PDF first.")
         _vectorstore = Chroma(
@@ -89,6 +87,10 @@ def _call_llm(prompt: str) -> str:
 
 def process_pdf(pdf_path: str):
     """Loads a PDF, splits into chunks, and saves to ChromaDB."""
+    from langchain_community.document_loaders import PyMuPDFLoader
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    from langchain_chroma import Chroma
+    
     print(f"Loading '{pdf_path}'...")
     loader = PyMuPDFLoader(pdf_path)
     docs = loader.load()

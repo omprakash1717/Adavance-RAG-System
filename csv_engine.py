@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -45,6 +44,7 @@ def _call_llm(prompt: str) -> str:
 
 def process_csv(filepath: str) -> dict:
     """Loads a CSV or Excel file, returning basic info so the UI knows it's ready."""
+    import pandas as pd
     print(f"Loading '{filepath}'...")
 
     try:
@@ -64,6 +64,7 @@ def process_csv(filepath: str) -> dict:
 
 def query_csv(user_query: str, filepath: str) -> str:
     """Reads the dataset and passes it to LLM along with the user's query."""
+    import pandas as pd
     try:
         if filepath.endswith('.csv'):
             df = pd.read_csv(filepath)
@@ -101,6 +102,7 @@ USER QUESTION:
 
 def get_csv_recommendations(filepath: str):
     """Generates analytical questions based on CSV columns and sample data."""
+    import pandas as pd
     try:
         if filepath.endswith('.csv'):
             df = pd.read_csv(filepath)
