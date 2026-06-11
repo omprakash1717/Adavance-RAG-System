@@ -7,7 +7,7 @@ load_dotenv()
 HF_TOKEN       = os.getenv("HUGGINGFACE_API_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-COLLECTION     = "RAG_system"
+COLLECTION     = "RAG_system_v2"
 CHROMA_PERSIST_DIR = "./chroma_db"
 
 # Global cache
