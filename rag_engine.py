@@ -22,12 +22,8 @@ def get_embeddings_model():
             print("Loading Google Generative AI Embeddings (API-based)...")
             from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-            class SafeGoogleEmbeddings(GoogleGenerativeAIEmbeddings):
-                def embed_documents(self, texts):
-                    return [self.embed_query(t) for t in texts]
-
-            _embeddings_model = SafeGoogleEmbeddings(
-                model="models/gemini-embedding-2",
+            _embeddings_model = GoogleGenerativeAIEmbeddings(
+                model="models/text-embedding-004",
                 google_api_key=GEMINI_API_KEY
             )
         else:
