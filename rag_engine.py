@@ -18,28 +18,9 @@ _vectorstore = None
 def get_embeddings_model():
     global _embeddings_model
     if _embeddings_model is None:
-        if GEMINI_API_KEY:
-            print("Loading Google Generative AI Embeddings (Batched)...")
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
-            
-            class SafeGoogleEmbeddings(GoogleGenerativeAIEmbeddings):
-                def embed_documents(self, texts):
-                    import time
-                    batch_size = 10
-                    results = []
-                    for i in range(0, len(texts), batch_size):
-                        batch = texts[i:i+batch_size]
-                        results.extend(super().embed_documents(batch))
-                        if len(texts) > batch_size:
-                            time.sleep(1) # Prevent 15 RPM rate limit
-                    return results
-
-            _embeddings_model = SafeGoogleEmbeddings(
-                model="models/embedding-001",
-                google_api_key=GEMINI_API_KEY
-            )
-        else:
-            raise Exception("GEMINI_API_KEY is missing! Please set it in your Render Environment Variables.")
+        print("Loading HuggingFace Embeddings (Local)...")
+        from langchain_huggingface import HuggingFaceEmbeddings
+        _embeddings_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     return _embeddings_model
 
 
